@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Grid Template for Bootstrap</title>
+    <!-- <script src="js/jquery-3.4.1.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        // function getQR(){
+        //     var data = new FormData();
+        //     // data.append('text_data', text_data);
+        //     data.append('text_data', 'dsfdskjnvjkdsnjkwen');
+        //     var xhr = new XMLHttpRequest();
+        //     // xhr.open('POST', "http://localhost:8000", true);
+        //     xhr.open('POST', "http://localhost:5000/qr", true);
+        //     // xhr.onload = function(){
+
+        //     //     if (xhr.status==403 || xhr.status==404) {
+        //     //         alert("Cannot send text data to the server!");
+        //     //     } else {
+        //     //         // alert(this.response);
+        //     //         print(this.response);
+        //     //         qrcode.src = data;
+        //     //     }
+        //     // };
+        //     xhr.send(data);
+        //     xhr.onreadystatechange = function() {
+        //         if (xhr.readyState == XMLHttpRequest.DONE) {
+        //             alert(this.responseText);
+        //             // print(this.response)
+        //             qrcode.html = "data:image/png;base64," + xhr.responseText;
+        //         }
+        //     }
+        // }
+
+
+        function getQR() {
+            alert('request');
+            $.ajax({
+                type: "POST",
+                // data: JSON.stringify(myData),
+                // dataType: 'json',
+                url: "http://localhost:5000/qr",
+                data: {
+                    text_data: "some text her jjjgjhgj"
+                }
+                }).always(
+                    function(mydata) {
+                        alert(JSON.stringify(mydata));
+                        // $('.qr-container').html(data)
+                        $('.qrcode').attr("src", JSON.parse(mydata).src);
+                        // $('.qrcode').attr("src", "data:image/png;base64," + data).responseData);
+                    }
+                );
+            }
+            
+        // function getQR{} {
+        //     $.post( "http://localhost:5000/qr", function( data ) {
+        //         $( "#btn" ).html( data );
+        //     });
+        // }
+    </script>
+
+    <style>
+        .qr-container {
+            width: 200px;
+            height: 200px;
+            background-color: yellow;
+        }
+        .qrcode {
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+
+  </head>
+
+  <body>
+    <div class='qr-container'>
+        hikdsfksldj
+        <img class='qrcode'><img>
+    </div>
+    <button id='btn' onclick="getQR()">Get QR</button>
+
+  </body>
+</html>
