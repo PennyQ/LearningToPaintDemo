@@ -8,13 +8,13 @@ import qrcode
 import time
 import threading
 
-app = Flask(__name__)
+# Create an instance of Flask API
+app = Flask(__name__) 
 api = Api(app)
 
-
-
+# TODO: did it get used?
 parser = reqparse.RequestParser()
-parser.add_argument('task')
+parser.add_argument('task') 
 
 # Create a URL route in our application for "/"
 @app.route('/')
@@ -24,13 +24,13 @@ def home():
     localhost:5000/
     :return:        the rendered template 'home.html'
     """
-    print(os.getcwd())
-    # return render_template('test_dyn_load.html')
     return render_template('index.html')
 
+# For developing purpose - test camera toggle
 @app.route('/test_tab')
 def test_tab():
     return render_template('test_tab.html')
+
 
 class ImageHandler(Resource):
 
@@ -64,12 +64,18 @@ class RelayServer(Resource):
 
     def __init__(self):
         super(RelayServer, self).__init__()
+        
+        # Directory for rendered images
         self.output_dir = 'output'
+
+        # For support multiple users
         self.user_id = 0
         self.active_users = []
+
+        # TODO: what does movie_link_dict mean?
         self.movie_link_dict = dict()
         self.last_sharable_movie_link = None 
-        self.daemon = None
+
 
     def movie_upload_daemon(self):
         """
@@ -77,13 +83,13 @@ class RelayServer(Resource):
         and if so, upload to the shared drive.
         """
 
-        def upload_movie_to_drive(active_user, output_dir):
-            movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
+        # TODO: login to SURFdrive, upload movie, get sharable link
+        # def upload_movie_to_drive(active_user, output_dir):
+        #     movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
 
-            # TODO: login to SURFdrive, upload movie, get sharable link
-            new_video_fn = 'video_%s.mp4' % output_dir
-            shared_link = None
-            return shared_link
+        #     new_video_fn = 'video_%s.mp4' % output_dir
+        #     shared_link = None
+        #     return shared_link
 
         def check_upload(active_users_list, output_dir, movie_link_dict):
             while True:
@@ -123,8 +129,6 @@ class RelayServer(Resource):
 
         Return: The URL of the movie if it is ready. Otherwise return an empty URL.
         """
-        # if self.daemon is None:
-            # self.daemon = self.movie_upload_daemon()
         ts = request.args.get('movie_id')
         print('Get a request')
         movie_path = os.path.join(self.output_dir, str(ts), 'video.mp4')
@@ -163,7 +167,7 @@ class RelayServer(Resource):
             os.system('touch DONE')
 
             # upload the movie to a HTTPS server
-            os.system('scp -i /home/maxwell/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_%s.mp4' % user_output_dir)
+            os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_%s.mp4' % user_output_dir)
 
             # get back to the original dir
             os.chdir(orig_dir)
@@ -202,6 +206,6 @@ api.add_resource(ImageHandler, '/upload')
 api.add_resource(QRGenerator, '/qr')
 api.add_resource(RelayServer, '/server')
 
-
+# Start the application by running as the main program itself
 if __name__ == '__main__':
     app.run(debug=True)

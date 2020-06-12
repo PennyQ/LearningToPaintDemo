@@ -138,4 +138,5 @@ dmypy.json
 cython_debug/
 
 # Extras
-.DS_Store
+*.DS_Store
+*.pyc
