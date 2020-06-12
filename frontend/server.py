@@ -138,21 +138,24 @@ class RelayServer(Resource):
 
     def post(self):
         image_data = request.files.get('upimage')
+    
         if image_data is not None:
             timestamp = time.time()
             self.active_users.append(timestamp)
             user_output_dir = os.path.join(self.output_dir, str(timestamp))
+            print("user_output_dir", user_output_dir)
             if not os.path.isdir(user_output_dir):
-                os.mkdir(user_output_dir)
+                os.makedirs(user_output_dir)
 
             # save camera image.
+            print("Save camera images...")
             image_data.save(os.path.join(user_output_dir, 'image.jpg'))
 
             # generate the movie frame
             orig_dir = os.getcwd()
             os.chdir(user_output_dir)
             print('Generating frames...')
-            os.system('python /home/maxwell/LearningToPaint/baseline/test.py --img image.jpg --actor /home/maxwell/LearningToPaint/baseline/model/actor.pkl --renderer /home/maxwell/LearningToPaint/baseline/model/renderer.pkl')
+            os.system('python /Users/pennyqxr/Code/LearningToPaintDemo/baseline/test.py --img image.jpg --actor /Users/pennyqxr/Code/LearningToPaintDemo/baseline/model/actor.pkl --renderer /Users/pennyqxr/Code/LearningToPaintDemo/baseline/model/renderer.pkl')
 
             # generate the movie
             print('Generate movie...')
@@ -181,7 +184,13 @@ class RelayServer(Resource):
         Return: a JSON string with the URL of the QR code (to be displayed in the web interface).
         """
         img_qr = qrcode.make(shared_link)
-        img_qr.save(os.path.join('static/qr', 'qr_%s.png' % str(timestamp)))
+        try:
+            if not os.path.isdir('static/qr'):
+                os.makedirs('static/qr')
+            img_qr.save(os.path.join('static/qr', 'qr_%s.png' % str(timestamp)))
+        except OSError as error:
+            print("Error when generate QR code", error)
+            return None
         # return json.dumps({'src': url_for('static', filename='qr.png')})
         return url_for('static', filename='qr/qr_%s.png' % str(timestamp))
 
