@@ -26,15 +26,6 @@ function cameraStart() {
         });
 }
 
-// function toggleCamera() {
-//     alert('toggle');
-//     // if ($("#camera-toggle").is(":checked")) {
-//     //     cameraStart();
-//     // } else {
-//     //     track.stop();
-//     // }
-// }
-
 $(function() {
     $('#camera-toggle').change(function() {
         if ($("#camera-toggle").is(":checked")) {
@@ -59,11 +50,6 @@ setInterval(function() {
                 $('#video-user'.concat((user_id-1) % 3)).attr("visibility", "visible")
                 $('#video-user'.concat((user_id-1) % 3)).attr("src", movie_link);
                 user_list.splice(user_list.indexOf(ts), 1); 
-                // $('#video-user'.concat(uid % 3)).get(0).load();
-                // $('#video-user'.concat(uid % 3)).play();
-                // $("#video-user".concat(user_list % 3).concat(' video source')).attr("visibility", "visible");
-                // $("#video-user".concat(user_list % 3).concat(' video source')).attr("src", movie_link);
-                // $("#video-user".concat(user_list % 3).concat(' video source')).load();
             } 
         });
     }
@@ -149,21 +135,17 @@ $('.qrcode').on('dblclick', function(){
 
 // Take a picture when cameraTrigger is tapped
 cameraTrigger.onclick = function() {
-    // cameraStart();
-    // cameraOutput.classList.remove("taken");
+
     cameraSensor.width = cameraView.videoWidth;
     cameraSensor.height = cameraView.videoHeight;
     cameraSensor.getContext("2d").drawImage(cameraView, 0, 0);
-    // cameraOutput.src = cameraSensor.toDataURL("image/webp");
-    // cameraOutput.classList.add("taken");
-    // track.pause();
 
     // Upload to server
     cameraSensor.toBlob(function(blob){
         var data = new FormData();
         data.append('upimage', blob);
+
         var xhr = new XMLHttpRequest();
-        // xhr.open('POST', "http://localhost:8000", true);
         xhr.open('POST', "/server", true);
         xhr.onload = function(){
             if (xhr.status==403 || xhr.status==404) {
@@ -176,10 +158,8 @@ cameraTrigger.onclick = function() {
                 $('.qrcode').attr("src", JSON.parse(json_res).src);
                 user_list.push(JSON.parse(json_res).ts);
                 qr_url_dict[user_id % 3] = JSON.parse(json_res).src;
-                // $('#camera--output-user'.concat(user_id % 3)).removeClass('taken');
                 $('#camera--output-user'.concat(user_id % 3)).attr("visibility", "visible");
                 $('#camera--output-user'.concat(user_id % 3)).attr("src", cameraSensor.toDataURL("image/webp"));
-                // $('#camera--output-user'.concat(user_id % 3)).addClass('taken');
                 user_id++;
             }
         };
