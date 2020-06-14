@@ -12,10 +12,6 @@ import threading
 app = Flask(__name__) 
 api = Api(app)
 
-# TODO: did it get used?
-parser = reqparse.RequestParser()
-parser.add_argument('task') 
-
 # Create a URL route in our application for "/"
 @app.route('/')
 def home():
@@ -32,19 +28,25 @@ def test_tab():
     return render_template('test_tab.html')
 
 
-class ImageHandler(Resource):
+# class ImageHandler(Resource):
 
-    def post(self):
-        # image_data = request.form.get('upimage')
-        image_data = request.files.get('upimage')
-        print(image_data)
-        if image_data is not None:
-            image_data.save('image.jpg')
-        else:
-            print('Warning: Empty picture! Make sure that the browser has the permission to use the camera.')
-        # with open('image.png', 'wb') as fout:
-            # fout.write(image_data)
+#     def post(self):
+#         # image_data = request.form.get('upimage')
+#         image_data = request.files.get('upimage')
+#         print(image_data)
+#         if image_data is not None:
+#             image_data.save('image.jpg')
+#         else:
+#             print('Warning: Empty picture! Make sure that the browser has the permission to use the camera.')
+#         # with open('image.png', 'wb') as fout:
+#             # fout.write(image_data)
 
+"""
+
+Contains a POST funnction.
+- Post the uploaded movie URL to /qr endpoint, return generated QR image in binary data as the body of POST response.
+
+"""
 class QRGenerator(Resource):
 
     def post(self):
@@ -59,7 +61,16 @@ class QRGenerator(Resource):
         # return json.dumps({'src': base64.b64encode(buffered.getvalue)})
         return json.dumps({'src': url_for('static', filename='qr.png')})
 
+"""
 
+Contains a GET function.
+- Get the URL of the uploaded movie URL via specified `movie_id`.
+
+Contains a POST function.
+- Post the taken image to server, the server will use pretrained model to generate strokes and movie on local. 
+  The movie is uploaded to a remote server and a mapped QR code is generated. 
+
+"""
 class RelayServer(Resource):
 
     def __init__(self):
@@ -77,51 +88,51 @@ class RelayServer(Resource):
         self.last_sharable_movie_link = None 
 
 
-    def movie_upload_daemon(self):
-        """
-        Create a daemon thread, so that it keeps checking whether a new movie is generated,
-        and if so, upload to the shared drive.
-        """
+    # def movie_upload_daemon(self):
+    #     """
+    #     For QR code, to check if movies are uploaded to expected URL every 5 seconds.
+    #     """
 
-        # TODO: login to SURFdrive, upload movie, get sharable link
-        # def upload_movie_to_drive(active_user, output_dir):
-        #     movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
+    #     # TODO: login to SURFdrive, upload movie, get sharable link
+    #     # def upload_movie_to_drive(active_user, output_dir):
+    #     #     movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
 
-        #     new_video_fn = 'video_%s.mp4' % output_dir
-        #     shared_link = None
-        #     return shared_link
+    #     #     new_video_fn = 'video_%s.mp4' % output_dir
+    #     #     shared_link = None
+    #     #     return shared_link
 
-        def check_upload(active_users_list, output_dir, movie_link_dict):
-            while True:
-                print('Checking %d active users' % len(active_users_list))
-                link_dict = dict()
-                for active_user in active_users_list:
-                    # check if movie exists
-                    movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
-                    if os.path.isfile(movie_path):
-                        # movie exists. Check whether it is uploaded to the server.
-                        if movie_path in movie_link_dict.values():
-                            # movie has been shared. Remove from monitoring
-                            active_users_list.remove(active_user)
-                        else:
-                            # check whether movie is fully sync'ed by determining whether an empty file `DONE` is present
-                            if os.path.isfile(os.path.join(output_dir, str(active_user), 'DONE')):
-                                # movie is fully downloaded, upload the movie now
-                                # shared_link = upload_movie_to_drive(active_user, output_dir)
-                                # link_dict[movie_path] = shared_link
-                                print('movie_path', movie_path, url_for('static', filename=movie_path))
-                                movie_link_dict[active_user] = movie_path
-                            else:
-                                # movie is still downloading. Just wait
-                                pass
-                time.sleep(5)
-        try:
-            th = threading.Thread(target=check_upload, args=(self.active_users, self.output_dir, self.movie_link_dict))
-            th.start()
-            return th
-        except:
-            print('Error: unable to start the daemon!')
-            return None
+    #     def check_upload(active_users_list, output_dir, movie_link_dict):
+    #         while True:
+    #             print('Checking %d active users' % len(active_users_list))
+
+    #             for active_user in active_users_list:
+    #                 # check if movie exists
+    #                 movie_path = os.path.join(output_dir, str(active_user), 'video.mp4')
+    #                 if os.path.isfile(movie_path):
+    #                     # movie exists. Check whether it is uploaded to the server.
+    #                     if movie_path in movie_link_dict.values():
+    #                         # movie has been shared. Remove from monitoring
+    #                         active_users_list.remove(active_user)
+    #                     else:
+    #                         # check whether movie is fully sync'ed by determining whether an empty file `DONE` is present
+    #                         if os.path.isfile(os.path.join(output_dir, str(active_user), 'DONE')):
+    #                             # movie is fully downloaded, upload the movie now
+    #                             # shared_link = upload_movie_to_drive(active_user, output_dir)
+    #                             # link_dict[movie_path] = shared_link
+    #                             print('movie_path', movie_path, url_for('static', filename=movie_path))
+    #                             movie_link_dict[active_user] = movie_path
+    #                         else:
+    #                             # movie is still downloading. Just wait
+    #                             pass
+    #             time.sleep(5)
+    #     try:
+    #         th = threading.Thread(target=check_upload, args=(self.active_users, self.output_dir, self.movie_link_dict))
+    #         th.start()
+    #         return th
+    #     except:
+    #         print('Error: unable to start the daemon to upload the movie!')
+    #         return None
+
 
     def get(self):
         """
@@ -135,12 +146,14 @@ class RelayServer(Resource):
 
         if os.path.isfile(movie_path):
             movie_shared_url = 'https://home.maxwellcai.com/learning_to_paint_videos/video_output/%s.mp4' % str(ts)
-            print('sharable', movie_shared_url)
+            print('Sharable movie link', movie_shared_url)
+            
             return json.dumps({'src': url_for('static', filename=movie_path), 'sharable': movie_shared_url})
         else:
             return json.dumps({'src': ""})  # return empty URL if movie is not yet ready
 
     def post(self):
+        # Extract taken picture data.
         image_data = request.files.get('upimage')
     
         if image_data is not None:
@@ -181,6 +194,7 @@ class RelayServer(Resource):
         else:
             print('Warning: Empty picture! Make sure that the browser has the permission to use the camera.')
 
+
     def generate_qr_code(self, shared_link, timestamp):
         """
         Generate a QR code so that the user can download the rendered movie.
@@ -188,6 +202,7 @@ class RelayServer(Resource):
         Return: a JSON string with the URL of the QR code (to be displayed in the web interface).
         """
         img_qr = qrcode.make(shared_link)
+
         try:
             if not os.path.isdir('static/qr'):
                 os.makedirs('static/qr')
@@ -195,14 +210,11 @@ class RelayServer(Resource):
         except OSError as error:
             print("Error when generate QR code", error)
             return None
-        # return json.dumps({'src': url_for('static', filename='qr.png')})
+
         return url_for('static', filename='qr/qr_%s.png' % str(timestamp))
 
 
-##
-## Actually setup the Api resource routing here
-##
-api.add_resource(ImageHandler, '/upload')
+# Setup the Api resource routing here
 api.add_resource(QRGenerator, '/qr')
 api.add_resource(RelayServer, '/server')
 

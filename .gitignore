@@ -140,3 +140,5 @@ cython_debug/
 # Extras
 *.DS_Store
 *.pyc
+
+/.vscode/

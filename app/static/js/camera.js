@@ -36,25 +36,6 @@ $(function() {
     })
 });
 
-
-setInterval(function() {
-    for (let i = 0; i < user_list.length; i++) {
-        ts = user_list[i];
-        $.get("/server", {movie_id: ts}).done(function(data) {
-            movie_link = JSON.parse(data).src;
-            alert(data);
-            sharable_movie_link = JSON.parse(data).sharable;
-            // alert(movie_link); 
-            if (movie_link != "") {
-                $('#camera--output-user'.concat((user_id-1) % 3)).attr("visibility", "hidden");
-                $('#video-user'.concat((user_id-1) % 3)).attr("visibility", "visible")
-                $('#video-user'.concat((user_id-1) % 3)).attr("src", movie_link);
-                user_list.splice(user_list.indexOf(ts), 1); 
-            } 
-        });
-    }
-}, 5000);
-
 $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
     pill_name = $(e.target).attr("id");
     pill_id = pill_name.charAt(pill_name.length-1);
@@ -99,25 +80,17 @@ function getQR() {
         }
         }).done(
             function(mydata) {
-                // alert(JSON.stringify(mydata));
-                // $('.qr-container').html(data)
                 $('.qrcode').attr("src", JSON.parse(mydata).src);
-                // $('.qrcode').attr("src", "data:image/png;base64," + data).responseData);
             }
         );
 }
 
-// function getVideo() {
-
-// }
-
 function switchTab() {
     // $('#v-pills-user'.concat(user_id % 3)).tab('show');
     $('#v-pills-tab-user'.concat(user_id % 3)).tab('show');
-    // alert('#v-pills-user'.concat(user_id % 3));
 }
 
-
+// Double click QR code will pop a explanation dialog.
 $('.qrcode').on('dblclick', function(){
     var email_title = "ICT.Open demo video from SURF";
     var email_body = "Hi there! You could download the demo video from ";
@@ -140,29 +113,36 @@ cameraTrigger.onclick = function() {
     cameraSensor.height = cameraView.videoHeight;
     cameraSensor.getContext("2d").drawImage(cameraView, 0, 0);
 
-    // Upload to server
+    // Upload the taken picture to server by POST, and handle responses
     cameraSensor.toBlob(function(blob){
         var data = new FormData();
         data.append('upimage', blob);
 
         var xhr = new XMLHttpRequest();
+
         xhr.open('POST', "/server", true);
+
         xhr.onload = function(){
+            // Post not successful
             if (xhr.status==403 || xhr.status==404) {
                 alert("Cannot upload the camera image to the server!");
             } else {
+                // Get QR code ready
                 json_res = xhr.response
-                // alert(json_res);
                 json_res = JSON.parse(json_res)
-                // alert(JSON.parse(json_res).src);
                 $('.qrcode').attr("src", JSON.parse(json_res).src);
+
                 user_list.push(JSON.parse(json_res).ts);
                 qr_url_dict[user_id % 3] = JSON.parse(json_res).src;
+
+                // Get canvas ready
                 $('#camera--output-user'.concat(user_id % 3)).attr("visibility", "visible");
                 $('#camera--output-user'.concat(user_id % 3)).attr("src", cameraSensor.toDataURL("image/webp"));
+
                 user_id++;
             }
         };
+
         xhr.send(data);
     });
 
@@ -172,5 +152,25 @@ cameraTrigger.onclick = function() {
     switchTab();
 };
 
-// Start the video stream when the window loads
+// A daemon process send Get request to the server every 5 seconds and handle the response - if the movie is ready, display in . 
+setInterval(function() {
+    for (let i = 0; i < user_list.length; i++) {
+        ts = user_list[i];
+        $.get("/server", {movie_id: ts}).done(function(data) {
+            movie_link = JSON.parse(data).src;
+            alert(data);
+            sharable_movie_link = JSON.parse(data).sharable;
+            // alert(movie_link); 
+            if (movie_link != "") {
+                $('#camera--output-user'.concat((user_id-1) % 3)).attr("visibility", "hidden");
+                $('#video-user'.concat((user_id-1) % 3)).attr("visibility", "visible")
+                $('#video-user'.concat((user_id-1) % 3)).attr("src", movie_link);
+                user_list.splice(user_list.indexOf(ts), 1); 
+            } 
+        });
+    }
+}, 5000);
+
+
+// Turns on the camera when the page loads
 window.addEventListener("load", cameraStart, false);

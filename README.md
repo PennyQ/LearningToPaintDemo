@@ -1,5 +1,5 @@
 # LearningToPaintDemo
-This is a demo frontend of "Learning to Paint", a Reinforcement Learning based painting agent. The demo applied trained models from [ICCV2019-LearningToPaint](https://github.com/megvii-research/ICCV2019-LearningToPaint), including both actor and renderer.
+This is a demo frontend of "Learning to Paint", a Reinforcement Learning based painting agent. The demo applied pre-trained models from [ICCV2019-LearningToPaint](https://github.com/megvii-research/ICCV2019-LearningToPaint), including both actor and renderer.
 
 <img src="DemoUI.png" align="middle" />
 
@@ -24,7 +24,7 @@ brew install ffmpeg
 
 ```bash
 cd frontend
-python server.py
+python run.py
 ```
 
 Go to `http://127.0.0.1:5000` (allow camera to be used in browser)
