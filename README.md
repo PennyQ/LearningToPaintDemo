@@ -23,8 +23,10 @@ brew install ffmpeg
 ## Usage
 
 ```bash
-cd frontend
-python run.py
+python setup.py install
+export FLASK_APP=app
+export FLASK_DEBUG=true
+flask run
 ```
 
 Go to `http://127.0.0.1:5000` (allow camera to be used in browser)

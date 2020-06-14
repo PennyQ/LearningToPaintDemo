@@ -77,7 +77,7 @@ class RelayServer(Resource):
         super(RelayServer, self).__init__()
         
         # Directory for rendered images
-        self.output_dir = 'output'
+        self.output_dir = 'app/output'
 
         # For support multiple users
         self.user_id = 0
@@ -143,12 +143,13 @@ class RelayServer(Resource):
         ts = request.args.get('movie_id')
         print('Get a request')
         movie_path = os.path.join(self.output_dir, str(ts), 'video.mp4')
+        print("movie path is", movie_path)
 
         if os.path.isfile(movie_path):
             movie_shared_url = 'https://home.maxwellcai.com/learning_to_paint_videos/video_output/%s.mp4' % str(ts)
             print('Sharable movie link', movie_shared_url)
             
-            return json.dumps({'src': url_for('static', filename=movie_path), 'sharable': movie_shared_url})
+            return json.dumps({'src': url_for('static', filename=os.path.join('output', str(ts), 'video.mp4')), 'sharable': movie_shared_url})
         else:
             return json.dumps({'src': ""})  # return empty URL if movie is not yet ready
 
@@ -161,6 +162,7 @@ class RelayServer(Resource):
             self.active_users.append(timestamp)
             user_output_dir = os.path.join(self.output_dir, str(timestamp))
             print("user_output_dir", user_output_dir)
+
             if not os.path.isdir(user_output_dir):
                 os.makedirs(user_output_dir)
 
@@ -170,6 +172,8 @@ class RelayServer(Resource):
 
             # generate the movie frame
             orig_dir = os.getcwd()
+            print("original dir is", orig_dir)
+
             os.chdir(user_output_dir)
             print('Generating frames...')
             os.system('python /Users/pennyqxr/Code/LearningToPaintDemo/baseline/test.py --img image.jpg --actor /Users/pennyqxr/Code/LearningToPaintDemo/baseline/model/actor.pkl --renderer /Users/pennyqxr/Code/LearningToPaintDemo/baseline/model/renderer.pkl')
@@ -180,7 +184,8 @@ class RelayServer(Resource):
             os.system('touch DONE')
 
             # upload the movie to a HTTPS server
-            os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_%s.mp4' % user_output_dir)
+            # os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_%s.mp4' % user_output_dir)
+            os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_output/%s.mp4' % str(timestamp))
 
             # get back to the original dir
             os.chdir(orig_dir)
@@ -188,7 +193,9 @@ class RelayServer(Resource):
             # generate QR code of the movie
             movie_shared_url = 'https://home.maxwellcai.com/learning_to_paint_videos/video_output/%s.mp4' % str(timestamp)
             self.last_sharable_movie_link = movie_shared_url
+
             qr_link = self.generate_qr_code(movie_shared_url, timestamp)
+
             self.user_id += 1
             return json.dumps({'src': qr_link, 'ts': timestamp, 'sharable': movie_shared_url})
         else:
@@ -204,13 +211,14 @@ class RelayServer(Resource):
         img_qr = qrcode.make(shared_link)
 
         try:
-            if not os.path.isdir('static/qr'):
-                os.makedirs('static/qr')
-            img_qr.save(os.path.join('static/qr', 'qr_%s.png' % str(timestamp)))
+            if not os.path.isdir('app/static/qr'):
+                os.makedirs('app/static/qr')
+            img_qr.save(os.path.join('app/static/qr', 'qr_%s.png' % str(timestamp)))
         except OSError as error:
             print("Error when generate QR code", error)
             return None
 
+        # create a URL for generated QR code
         return url_for('static', filename='qr/qr_%s.png' % str(timestamp))
 
 
