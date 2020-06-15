@@ -8,9 +8,11 @@ import qrcode
 import time
 import threading
 
+
 # Create an instance of Flask API
-app = Flask(__name__) 
+app = Flask(__name__, template_folder="templates") 
 api = Api(app)
+
 
 # Create a URL route in our application for "/"
 @app.route('/')
@@ -18,9 +20,10 @@ def home():
     """
     This function just responds to the browser ULR
     localhost:5000/
-    :return:        the rendered template 'home.html'
+    :return:        the rendered template 'index.html'
     """
     return render_template('index.html')
+
 
 # For developing purpose - test camera toggle
 @app.route('/test_tab')
@@ -41,6 +44,7 @@ def test_tab():
 #         # with open('image.png', 'wb') as fout:
 #             # fout.write(image_data)
 
+
 """
 
 Contains a POST funnction.
@@ -60,6 +64,7 @@ class QRGenerator(Resource):
         img_qr.save('qr.png')
         # return json.dumps({'src': base64.b64encode(buffered.getvalue)})
         return json.dumps({'src': url_for('static', filename='qr.png')})
+
 
 """
 
@@ -153,6 +158,7 @@ class RelayServer(Resource):
         else:
             return json.dumps({'src': ""})  # return empty URL if movie is not yet ready
 
+
     def post(self):
         # Extract taken picture data.
         image_data = request.files.get('upimage')
@@ -184,7 +190,6 @@ class RelayServer(Resource):
             os.system('touch DONE')
 
             # upload the movie to a HTTPS server
-            # os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_%s.mp4' % user_output_dir)
             os.system('scp -i /Users/pennyqxr/.ssh/id_rsa_pi -P 13893 video.mp4 pi@home.maxwellcai.com:/var/www/html/learning_to_paint_videos/video_output/%s.mp4' % str(timestamp))
 
             # get back to the original dir
@@ -225,6 +230,7 @@ class RelayServer(Resource):
 # Setup the Api resource routing here
 api.add_resource(QRGenerator, '/qr')
 api.add_resource(RelayServer, '/server')
+
 
 # Start the application by running as the main program itself
 if __name__ == '__main__':

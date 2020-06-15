@@ -7,4 +7,7 @@ setup(
     install_requires=[
         'flask',
     ],
+    tests_require=[
+        'pytest',
+    ]
 )
